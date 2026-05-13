@@ -1,0 +1,180 @@
+body {
+  margin: 0;
+}
+
+#root {
+  min-height: 100svh;
+}
+
+.mmorpg-root {
+  --bg-deep: #0a0612;
+  --bg-panel: rgba(18, 10, 32, 0.92);
+  --border-glow: rgba(186, 104, 255, 0.55);
+  --gold: #f5d742;
+  --gold-dim: #c9a227;
+  --violet: #b794ff;
+  --violet-hot: #d946ef;
+  --text: #e8e0f5;
+  --text-muted: #9b8fb8;
+  --danger: #ff4d6d;
+  --success: #5cf6c3;
+  --info: #7dd3fc;
+  --shadow-purple: 0 0 24px rgba(168, 85, 247, 0.45), 0 0 60px rgba(88, 28, 135, 0.35);
+  --shadow-gold: 0 0 18px rgba(245, 215, 66, 0.55), 0 0 40px rgba(201, 162, 39, 0.25);
+  font-family:
+    'Pretendard',
+    'Malgun Gothic',
+    system-ui,
+    -apple-system,
+    sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(1200px 600px at 50% -10%, rgba(120, 50, 180, 0.35), transparent 55%),
+    radial-gradient(900px 500px at 100% 20%, rgba(217, 70, 239, 0.12), transparent 50%),
+    radial-gradient(700px 400px at 0% 80%, rgba(59, 130, 246, 0.08), transparent 45%),
+    var(--bg-deep);
+  min-height: 100svh;
+  box-sizing: border-box;
+}
+
+.mmorpg-root *,
+.mmorpg-root *::before,
+.mmorpg-root *::after {
+  box-sizing: border-box;
+}
+
+.mmorpg-root a {
+  color: inherit;
+}
+
+.mmorpg-panel {
+  background: linear-gradient(160deg, rgba(40, 20, 70, 0.55), rgba(12, 8, 24, 0.9));
+  border: 1px solid rgba(186, 104, 255, 0.35);
+  border-radius: 14px;
+  box-shadow: var(--shadow-purple), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(10px);
+}
+
+.mmorpg-title {
+  margin: 0;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(90deg, #fde68a, #f5d742 35%, #e9d5ff 70%, #d946ef);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 40px rgba(217, 70, 239, 0.35);
+}
+
+.mmorpg-sub {
+  margin: 0.35rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.mmorpg-input {
+  width: 100%;
+  max-width: 360px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(186, 104, 255, 0.45);
+  background: rgba(8, 5, 18, 0.85);
+  color: var(--text);
+  font-size: 1.05rem;
+  outline: none;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.45);
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.mmorpg-input:focus {
+  border-color: rgba(245, 215, 66, 0.65);
+  box-shadow:
+    inset 0 0 20px rgba(0, 0, 0, 0.45),
+    0 0 0 3px rgba(217, 70, 239, 0.25);
+}
+
+.mmorpg-btn {
+  cursor: pointer;
+  border: none;
+  border-radius: 14px;
+  padding: 14px 22px;
+  font-weight: 800;
+  font-size: 1.05rem;
+  color: #1a0a24;
+  background: linear-gradient(180deg, #fff6bf 0%, #f5d742 40%, #c9a227 100%);
+  box-shadow:
+    var(--shadow-gold),
+    inset 0 2px 0 rgba(255, 255, 255, 0.65),
+    inset 0 -3px 0 rgba(120, 80, 0, 0.35);
+  transition:
+    transform 0.12s ease,
+    filter 0.15s ease;
+}
+
+.mmorpg-btn:hover:not(:disabled) {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+}
+
+.mmorpg-btn:active:not(:disabled) {
+  transform: translateY(1px);
+  filter: brightness(0.96);
+}
+
+.mmorpg-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  filter: grayscale(0.2);
+}
+
+.mmorpg-btn--ghost {
+  color: var(--text);
+  background: linear-gradient(180deg, rgba(80, 40, 120, 0.9), rgba(30, 15, 55, 0.95));
+  border: 1px solid rgba(186, 104, 255, 0.45);
+  box-shadow: var(--shadow-purple), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.mmorpg-btn--danger {
+  background: linear-gradient(180deg, #ff7b9c, #ff335f 55%, #b3123a);
+  color: #fff7fb;
+  box-shadow:
+    0 0 22px rgba(255, 77, 109, 0.55),
+    inset 0 2px 0 rgba(255, 255, 255, 0.35);
+}
+
+.mmorpg-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--violet);
+  border: 1px solid rgba(186, 104, 255, 0.45);
+  background: rgba(20, 10, 40, 0.75);
+}
+
+.mmorpg-scroll {
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(186, 104, 255, 0.55) rgba(10, 6, 20, 0.6);
+}
+
+.mmorpg-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.mmorpg-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(217, 70, 239, 0.55), rgba(120, 50, 200, 0.45));
+  border-radius: 999px;
+}
+
+@media (max-width: 960px) {
+  .mmorpg-grid {
+    grid-template-columns: 1fr !important;
+  }
+}

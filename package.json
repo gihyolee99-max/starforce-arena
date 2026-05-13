@@ -1,0 +1,13 @@
+{
+  "name": "starforce-arena",
+  "private": true,
+  "scripts": {
+    "dev:client": "npm --prefix client run dev",
+    "dev:server": "npm --prefix server run dev",
+    "build:client": "npm --prefix client run build"
+  },
+  "dependencies": {
+    "lucide-react": "^1.14.0",
+    "socket.io-client": "^4.8.3"
+  }
+}
