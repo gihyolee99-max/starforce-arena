@@ -1,8 +1,13 @@
 import { LoginScreen } from './components/LoginScreen.jsx'
 import { GameShell } from './components/GameShell.jsx'
+import { AdminPanel } from './components/AdminPanel.jsx'
 import { useEnhanceSession } from './hooks/useEnhanceSession.js'
 
 export default function App() {
+  if (window.location.pathname === '/admin') {
+    return <AdminPanel />
+  }
+
   const session = useEnhanceSession()
 
   if (session.phase === 'login' || session.phase === 'connecting') {
@@ -27,6 +32,7 @@ export default function App() {
       onEnhance={session.requestEnhance}
       onSellWeapon={session.sellWeapon}
       onBuyShopItem={session.buyShopItem}
+      onEquipWeapon={session.equipWeapon}
       onLeave={session.leaveGame}
       messages={session.messages}
       onSendChat={session.sendChat}

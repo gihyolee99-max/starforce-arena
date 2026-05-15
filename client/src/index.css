@@ -353,6 +353,127 @@ body {
   margin-top: 4px;
 }
 
+.admin-root {
+  min-height: 100svh;
+  padding: 24px 16px;
+}
+
+.admin-shell {
+  width: min(1080px, 100%);
+  margin: 0 auto;
+  display: grid;
+  gap: 14px;
+}
+
+.admin-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 0;
+}
+
+.admin-title {
+  margin-top: 10px;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+}
+
+.admin-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(186, 104, 255, 0.35);
+  background: rgba(8, 5, 18, 0.58);
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 850;
+}
+
+.admin-login {
+  width: min(460px, 100%);
+  padding: 20px;
+  display: grid;
+  gap: 12px;
+}
+
+.admin-login label {
+  color: var(--text-muted);
+  font-size: 0.86rem;
+  font-weight: 850;
+}
+
+.admin-table-card {
+  padding: 14px;
+  display: grid;
+  gap: 14px;
+}
+
+.admin-table {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-table-head,
+.admin-rate-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) minmax(96px, 120px) minmax(96px, 120px) minmax(96px, 120px);
+  gap: 10px;
+  align-items: center;
+}
+
+.admin-table-head {
+  padding: 0 10px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 850;
+}
+
+.admin-rate-row {
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(186, 104, 255, 0.22);
+  background: rgba(8, 5, 18, 0.48);
+}
+
+.admin-rate-row strong {
+  color: var(--gold);
+}
+
+.admin-rate-row .mmorpg-input {
+  max-width: none;
+  padding: 10px 12px;
+  font-size: 0.95rem;
+}
+
+.admin-fail-value {
+  min-height: 43px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  border: 1px solid rgba(125, 211, 252, 0.25);
+  background: rgba(125, 211, 252, 0.08);
+  color: var(--info);
+  font-weight: 900;
+}
+
+.admin-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.admin-message {
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(245, 215, 66, 0.28);
+  background: rgba(245, 215, 66, 0.08);
+  color: var(--gold);
+  font-weight: 850;
+}
+
 .game-header {
   display: flex;
   flex-wrap: wrap;
@@ -373,6 +494,12 @@ body {
   color: var(--gold);
   font-weight: 950;
   box-shadow: var(--shadow-gold);
+}
+
+.wallet-pill--blue {
+  color: var(--info);
+  border-color: rgba(125, 211, 252, 0.36);
+  box-shadow: 0 0 18px rgba(125, 211, 252, 0.24);
 }
 
 .mmorpg-grid {
@@ -399,6 +526,21 @@ body {
   overflow: hidden;
 }
 
+.equipment-aura {
+  position: absolute;
+  inset: -40px;
+  opacity: 0.72;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+
+.equipment-topline {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
 .equipment-frame {
   margin: 10px auto 6px;
   width: min(320px, 92%);
@@ -413,6 +555,51 @@ body {
   display: grid;
   place-items: center;
   position: relative;
+}
+
+.equipment-frame img {
+  width: 86%;
+  height: 86%;
+  object-fit: cover;
+  border-radius: 14px;
+  box-shadow: 0 0 24px rgba(245, 215, 66, 0.25);
+}
+
+.rarity-frame-common {
+  border-color: rgba(203, 213, 225, 0.34);
+}
+
+.rarity-frame-rare {
+  border-color: rgba(125, 211, 252, 0.48);
+}
+
+.rarity-frame-epic {
+  border-color: rgba(217, 70, 239, 0.55);
+}
+
+.rarity-frame-legendary {
+  border-color: rgba(245, 158, 11, 0.62);
+}
+
+.enhance-burst {
+  position: absolute;
+  inset: -10px;
+  border-radius: 22px;
+  pointer-events: none;
+}
+
+.weapon-glyph {
+  width: 46%;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid rgba(245, 215, 66, 0.35);
+  background: rgba(8, 5, 18, 0.72);
+  color: var(--gold);
+  font-size: clamp(3.2rem, 10vw, 5rem);
+  font-weight: 950;
+  box-shadow: var(--shadow-gold);
 }
 
 .equipment-caption {
@@ -439,6 +626,72 @@ body {
   font-weight: 950;
   color: var(--text);
   text-shadow: 0 0 22px rgba(186, 104, 255, 0.35);
+}
+
+.enhance-message {
+  min-height: 26px;
+  margin-top: 8px;
+  color: var(--text-muted);
+  font-weight: 750;
+}
+
+.enhance-cost-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.enhance-cost-row div {
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(186, 104, 255, 0.22);
+  background: rgba(8, 5, 18, 0.46);
+}
+
+.enhance-cost-row span,
+.enhance-cost-row strong {
+  display: block;
+}
+
+.enhance-cost-row span {
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  font-weight: 850;
+}
+
+.enhance-cost-row strong {
+  margin-top: 4px;
+  color: var(--gold);
+  font-size: 0.95rem;
+  font-weight: 950;
+}
+
+.protection-toggle {
+  margin: 12px auto 0;
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(245, 215, 66, 0.28);
+  background: rgba(8, 5, 18, 0.5);
+  color: var(--text);
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.protection-toggle.is-disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.enhance-button {
+  min-width: 220px;
+  margin-top: 16px;
+  padding: 16px 22px;
+  font-size: 1.08rem;
 }
 
 .rate-grid {
@@ -497,13 +750,68 @@ body {
   overflow-wrap: anywhere;
 }
 
-.shop-grid {
+.market-panel {
+  padding: 14px;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.panel-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   gap: 10px;
 }
 
-.shop-item,
+.panel-heading strong,
+.panel-heading span {
+  display: block;
+}
+
+.panel-heading strong {
+  font-weight: 950;
+}
+
+.panel-heading span {
+  margin-top: 3px;
+  color: var(--gold);
+  font-size: 0.86rem;
+  font-weight: 850;
+}
+
+.segmented-tabs {
+  display: inline-flex;
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid rgba(186, 104, 255, 0.28);
+  background: rgba(8, 5, 18, 0.58);
+}
+
+.segmented-tabs button {
+  border: 0;
+  border-radius: 9px;
+  padding: 8px 10px;
+  background: transparent;
+  color: var(--text-muted);
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.segmented-tabs button.active {
+  background: rgba(245, 215, 66, 0.14);
+  color: var(--gold);
+}
+
+.inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  max-height: 420px;
+  overflow: auto;
+}
+
+.weapon-card,
+.shop-row,
 .feed-row {
   text-align: left;
   padding: 10px;
@@ -512,11 +820,148 @@ body {
   background: rgba(8, 5, 18, 0.45);
 }
 
-.shop-item {
+.weapon-card.is-active {
+  border-color: rgba(245, 215, 66, 0.48);
+  background: rgba(245, 215, 66, 0.08);
+}
+
+.weapon-card-top,
+.weapon-card-actions,
+.shop-row,
+.shop-buy {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 10px;
+}
+
+.weapon-card-top strong {
+  color: var(--gold);
+  font-size: 1.1rem;
+  font-weight: 950;
+}
+
+.weapon-card-name {
+  margin-top: 10px;
+  font-weight: 950;
+}
+
+.weapon-card-sub,
+.shop-meta {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  font-weight: 780;
+}
+
+.weapon-card-actions {
+  margin-top: 12px;
+}
+
+.weapon-card-actions .mmorpg-btn,
+.shop-buy .mmorpg-btn {
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 0.86rem;
+}
+
+.shop-list {
+  display: grid;
+  gap: 10px;
+  max-height: 420px;
+  overflow: auto;
+}
+
+.shop-title {
+  font-weight: 950;
+}
+
+.shop-buy {
+  flex-shrink: 0;
+}
+
+.shop-buy strong {
+  color: var(--gold);
+  white-space: nowrap;
+}
+
+.price-table {
+  display: grid;
+  gap: 6px;
+  max-height: 420px;
+  overflow: auto;
+}
+
+.price-table-head,
+.price-row {
+  display: grid;
+  grid-template-columns: 0.6fr 1fr 1fr;
+  gap: 8px;
+  align-items: center;
+}
+
+.price-table-head {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 850;
+  padding: 0 10px;
+}
+
+.price-row {
+  padding: 9px 10px;
+  border-radius: 10px;
+  background: rgba(8, 5, 18, 0.42);
+  border: 1px solid rgba(186, 104, 255, 0.16);
+}
+
+.price-row strong {
+  color: var(--violet);
+}
+
+.price-row span:last-child {
+  color: var(--gold);
+  font-weight: 850;
+}
+
+.rarity-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(203, 213, 225, 0.28);
+  color: #cbd5e1;
+  background: rgba(8, 5, 18, 0.58);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.rarity-rare {
+  color: #7dd3fc;
+  border-color: rgba(125, 211, 252, 0.35);
+}
+
+.rarity-epic {
+  color: #f0abfc;
+  border-color: rgba(217, 70, 239, 0.4);
+}
+
+.rarity-legendary {
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.48);
+}
+
+.rarity-card-rare {
+  border-color: rgba(125, 211, 252, 0.28);
+}
+
+.rarity-card-epic {
+  border-color: rgba(217, 70, 239, 0.34);
+}
+
+.rarity-card-legendary {
+  border-color: rgba(245, 158, 11, 0.42);
 }
 
 @media (max-width: 960px) {
@@ -533,6 +978,19 @@ body {
   }
 
   .arena-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-header {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .admin-table-head {
+    display: none;
+  }
+
+  .admin-rate-row {
     grid-template-columns: 1fr;
   }
 }
@@ -560,14 +1018,26 @@ body {
     grid-template-columns: 1fr;
   }
 
-  .shop-grid,
   .rate-grid,
-  .market-stat {
+  .market-stat,
+  .enhance-cost-row,
+  .inventory-grid {
     grid-template-columns: 1fr;
   }
 
-  .shop-grid {
-    grid-template-columns: 1fr;
+  .panel-heading,
+  .shop-row,
+  .shop-buy {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .segmented-tabs {
+    width: 100%;
+  }
+
+  .segmented-tabs button {
+    flex: 1;
   }
 
   .chat-log {

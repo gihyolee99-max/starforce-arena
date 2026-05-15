@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { EquipmentPanel } from './EquipmentPanel.jsx'
 import { ChatPanel } from './ChatPanel.jsx'
 import { RankingPanel } from './RankingPanel.jsx'
@@ -16,6 +17,7 @@ export function GameShell({
   onEnhance,
   onSellWeapon,
   onBuyShopItem,
+  onEquipWeapon,
   onLeave,
   messages,
   onSendChat,
@@ -26,6 +28,7 @@ export function GameShell({
   playerState,
 }) {
   const maxed = level >= 30
+  const [useProtection, setUseProtection] = useState(false)
 
   return (
     <div className="mmorpg-root" style={{ padding: '16px 14px 22px' }}>
@@ -35,15 +38,16 @@ export function GameShell({
             {connected ? 'CONNECTED' : 'DISCONNECTED'}
           </div>
           <div className="mmorpg-title" style={{ fontSize: 'clamp(1.25rem, 3.2vw, 1.75rem)' }}>
-            스타포스 강화 아레나
+            Starforce Arena
           </div>
           <div className="mmorpg-sub" style={{ marginTop: 6 }}>
-            접속 기사: <span style={{ color: 'var(--gold-dim)', fontWeight: 900 }}>{nickname}</span>
+            접속 유저: <span style={{ color: 'var(--gold-dim)', fontWeight: 900 }}>{nickname}</span>
           </div>
         </div>
 
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-          <div className="wallet-pill">{Number(playerState.gold || 0).toLocaleString('ko-KR')} 골드</div>
+          <div className="wallet-pill">{Number(playerState.gold || 0).toLocaleString('ko-KR')} G</div>
+          <div className="wallet-pill wallet-pill--blue">보호권 {playerState.protectionScrolls || 0}</div>
           <button type="button" className="mmorpg-btn mmorpg-btn--ghost" onClick={onLeave}>
             로그아웃
           </button>
@@ -63,16 +67,23 @@ export function GameShell({
             rates={rates}
             busy={enhanceBusy}
             maxed={maxed}
-            onEnhance={onEnhance}
+            gold={playerState.gold}
+            enhanceCost={playerState.enhanceCost}
+            protectionScrolls={playerState.protectionScrolls}
+            useProtection={useProtection}
+            onProtectionChange={setUseProtection}
+            onEnhance={() => onEnhance(useProtection)}
             lastOutcome={lastOutcome}
           />
           <ChatPanel messages={messages} onSend={onSendChat} />
           <MarketPanel
             gold={playerState.gold}
-            weapon={playerState.weapon}
-            sellValue={playerState.sellValue}
+            activeWeaponId={playerState.activeWeaponId}
+            inventory={playerState.inventory}
             shopItems={playerState.shopItems}
+            priceTable={playerState.priceTable}
             busy={marketBusy}
+            onEquip={onEquipWeapon}
             onSell={onSellWeapon}
             onBuy={onBuyShopItem}
           />

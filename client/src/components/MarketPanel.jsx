@@ -1,85 +1,125 @@
+import { useMemo, useState } from 'react'
+
 function formatGold(value) {
-  return `${Number(value || 0).toLocaleString('ko-KR')} 골드`
+  return `${Number(value || 0).toLocaleString('ko-KR')} G`
 }
 
-export function MarketPanel({ gold, weapon, sellValue, shopItems, busy, onSell, onBuy }) {
+function rarityLabel(rarity) {
+  const labels = {
+    common: '일반',
+    rare: '희귀',
+    epic: '영웅',
+    legendary: '전설',
+  }
+  return labels[rarity] || rarity
+}
+
+export function MarketPanel({
+  gold,
+  activeWeaponId,
+  inventory,
+  shopItems,
+  priceTable,
+  busy,
+  onEquip,
+  onSell,
+  onBuy,
+}) {
+  const [tab, setTab] = useState('inventory')
+  const sortedInventory = useMemo(
+    () => [...(inventory || [])].sort((a, b) => b.level - a.level || a.name.localeCompare(b.name)),
+    [inventory],
+  )
+
   return (
-    <div className="mmorpg-panel" style={{ padding: 14, display: 'grid', gap: 14 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-        <div style={{ fontWeight: 900 }}>판매소 / 무기 상점</div>
-        <span className="mmorpg-tag">GOLD</span>
-      </div>
-
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-          gap: 10,
-        }}
-      >
-        <div className="market-stat">
-          <span>보유 골드</span>
-          <strong>{formatGold(gold)}</strong>
+    <div className="mmorpg-panel market-panel">
+      <div className="panel-heading">
+        <div>
+          <strong>상점 / 인벤토리</strong>
+          <span>{formatGold(gold)}</span>
         </div>
-        <div className="market-stat">
-          <span>현재 무기</span>
-          <strong>+{weapon?.level ?? 0} {weapon?.name ?? '무기'}</strong>
+        <div className="segmented-tabs">
+          <button type="button" className={tab === 'inventory' ? 'active' : ''} onClick={() => setTab('inventory')}>
+            인벤토리
+          </button>
+          <button type="button" className={tab === 'shop' ? 'active' : ''} onClick={() => setTab('shop')}>
+            상점
+          </button>
+          <button type="button" className={tab === 'prices' ? 'active' : ''} onClick={() => setTab('prices')}>
+            시세표
+          </button>
         </div>
       </div>
 
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 12,
-          padding: 12,
-          borderRadius: 12,
-          border: '1px solid rgba(245,215,66,0.28)',
-          background: 'rgba(8,5,18,0.55)',
-        }}
-      >
-        <div style={{ textAlign: 'left' }}>
-          <div style={{ color: 'var(--text-muted)', fontSize: '0.82rem', fontWeight: 800 }}>판매 예상가</div>
-          <div style={{ marginTop: 4, color: 'var(--gold)', fontSize: '1.1rem', fontWeight: 950 }}>
-            {formatGold(sellValue)}
-          </div>
-        </div>
-        <button
-          type="button"
-          className="mmorpg-btn mmorpg-btn--danger"
-          disabled={busy || !sellValue}
-          onClick={onSell}
-          style={{ padding: '11px 16px', whiteSpace: 'nowrap' }}
-        >
-          판매
-        </button>
-      </div>
-
-      <div className="shop-grid">
-        {(shopItems || []).map((item) => {
-          const affordable = gold >= item.price
-          return (
-            <div key={item.id} className="shop-item">
-              <div>
-                <div style={{ fontWeight: 950 }}>+{item.level} {item.name}</div>
-                <div style={{ marginTop: 4, color: 'var(--text-muted)', fontSize: '0.86rem', fontWeight: 800 }}>
-                  {formatGold(item.price)}
+      {tab === 'inventory' ? (
+        <div className="inventory-grid">
+          {sortedInventory.map((weapon) => {
+            const active = weapon.uid === activeWeaponId
+            return (
+              <div key={weapon.uid} className={`weapon-card rarity-card-${weapon.rarity} ${active ? 'is-active' : ''}`}>
+                <div className="weapon-card-top">
+                  <span className={`rarity-chip rarity-${weapon.rarity}`}>{rarityLabel(weapon.rarity)}</span>
+                  <strong>+{weapon.level}</strong>
+                </div>
+                <div className="weapon-card-name">{weapon.name}</div>
+                <div className="weapon-card-sub">{weapon.type}</div>
+                <div className="weapon-card-actions">
+                  <button className="mmorpg-btn mmorpg-btn--ghost" type="button" disabled={busy || active} onClick={() => onEquip(weapon.uid)}>
+                    {active ? '장착중' : '장착'}
+                  </button>
+                  <button className="mmorpg-btn mmorpg-btn--danger" type="button" disabled={busy || sortedInventory.length <= 1} onClick={() => onSell(weapon.uid)}>
+                    판매
+                  </button>
                 </div>
               </div>
-              <button
-                type="button"
-                className="mmorpg-btn mmorpg-btn--ghost"
-                disabled={busy || !affordable}
-                onClick={() => onBuy(item.id)}
-                style={{ padding: '9px 12px', fontSize: '0.9rem', whiteSpace: 'nowrap' }}
-              >
-                구매
-              </button>
+            )
+          })}
+        </div>
+      ) : null}
+
+      {tab === 'shop' ? (
+        <div className="shop-list">
+          {(shopItems || []).map((item) => {
+            const affordable = gold >= item.price
+            const isProtection = item.kind === 'protection'
+            return (
+              <div key={item.id} className={`shop-row ${item.rarity ? `rarity-card-${item.rarity}` : ''}`}>
+                <div>
+                  <div className="shop-title">
+                    {isProtection ? item.name : `+${item.level} ${item.name}`}
+                  </div>
+                  <div className="shop-meta">
+                    {isProtection ? '파괴 시 강화 단계를 보호합니다' : `${rarityLabel(item.rarity)} · ${item.type}`}
+                  </div>
+                </div>
+                <div className="shop-buy">
+                  <strong>{formatGold(item.price)}</strong>
+                  <button className="mmorpg-btn mmorpg-btn--ghost" type="button" disabled={busy || !affordable} onClick={() => onBuy(item.id)}>
+                    구매
+                  </button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      ) : null}
+
+      {tab === 'prices' ? (
+        <div className="price-table">
+          <div className="price-table-head">
+            <span>강화</span>
+            <span>강화비</span>
+            <span>판매가</span>
+          </div>
+          {(priceTable || []).map((row) => (
+            <div key={row.level} className="price-row">
+              <strong>+{row.level}</strong>
+              <span>{formatGold(row.enhanceCost)}</span>
+              <span>{formatGold(row.sellValue)}</span>
             </div>
-          )
-        })}
-      </div>
+          ))}
+        </div>
+      ) : null}
     </div>
   )
 }

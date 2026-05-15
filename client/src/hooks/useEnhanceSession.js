@@ -4,11 +4,26 @@ import { createGameSocket } from '../socket/client.js'
 const MAX_FEED = 40
 const MAX_CHAT = 80
 
+const EMPTY_WEAPON = {
+  uid: 'starter',
+  catalogId: 'training_sword',
+  name: 'Training Sword',
+  type: 'Sword',
+  rarity: 'common',
+  level: 0,
+}
+
 const EMPTY_STATE = {
   gold: 0,
-  weapon: { id: 'starter-sword', name: '수련용 검', level: 0 },
+  protectionScrolls: 0,
+  activeWeaponId: EMPTY_WEAPON.uid,
+  weapon: EMPTY_WEAPON,
+  inventory: [EMPTY_WEAPON],
+  rarityMeta: {},
   shopItems: [],
+  enhanceCost: 0,
   sellValue: 0,
+  priceTable: [],
 }
 
 export function useEnhanceSession() {
@@ -34,12 +49,20 @@ export function useEnhanceSession() {
 
   const applyServerState = useCallback((state) => {
     if (!state) return
+    const weapon = state.weapon ?? EMPTY_WEAPON
     setPlayerState({
       gold: state.gold ?? 0,
-      weapon: state.weapon ?? EMPTY_STATE.weapon,
+      protectionScrolls: state.protectionScrolls ?? 0,
+      activeWeaponId: state.activeWeaponId ?? weapon.uid,
+      weapon,
+      inventory: Array.isArray(state.inventory) ? state.inventory : [weapon],
+      rarityMeta: state.rarityMeta ?? {},
       shopItems: Array.isArray(state.shopItems) ? state.shopItems : [],
+      enhanceCost: state.enhanceCost ?? 0,
       sellValue: state.sellValue ?? 0,
+      priceTable: Array.isArray(state.priceTable) ? state.priceTable : [],
     })
+    setLevel(weapon.level ?? 0)
   }, [])
 
   const teardownSocket = useCallback(() => {
@@ -77,7 +100,6 @@ export function useEnhanceSession() {
           teardownSocket()
           return
         }
-        setLevel(ack.level ?? 0)
         setRates(ack.ratesPreview ?? null)
         applyServerState(ack.state)
         setPhase('game')
@@ -91,18 +113,9 @@ export function useEnhanceSession() {
       teardownSocket()
     })
 
-    socket.on('disconnect', () => {
-      setConnected(false)
-    })
-
-    socket.on('users:update', (list) => {
-      setUsers(Array.isArray(list) ? list : [])
-    })
-
-    socket.on('ranking:update', (rows) => {
-      setRanking(Array.isArray(rows) ? rows : [])
-    })
-
+    socket.on('disconnect', () => setConnected(false))
+    socket.on('users:update', (list) => setUsers(Array.isArray(list) ? list : []))
+    socket.on('ranking:update', (rows) => setRanking(Array.isArray(rows) ? rows : []))
     socket.on('chat:message', (msg) => {
       setMessages((prev) => {
         const next = [...prev, msg]
@@ -110,7 +123,6 @@ export function useEnhanceSession() {
         return next
       })
     })
-
     socket.on('chat:system', (msg) => {
       setMessages((prev) => {
         const next = [...prev, { ...msg, system: true }]
@@ -118,7 +130,6 @@ export function useEnhanceSession() {
         return next
       })
     })
-
     socket.on('enhance:broadcast', (row) => {
       setFeed((prev) => {
         const next = [row, ...prev]
@@ -126,7 +137,7 @@ export function useEnhanceSession() {
         return next
       })
     })
-
+    socket.on('rates:update', (nextRates) => setRates(nextRates ?? null))
     socket.connect()
   }, [applyServerState, teardownSocket])
 
@@ -152,15 +163,14 @@ export function useEnhanceSession() {
     socketRef.current?.emit('chat:send', { text })
   }, [])
 
-  const requestEnhance = useCallback(() => {
+  const requestEnhance = useCallback((useProtection = false) => {
     const socket = socketRef.current
     if (!socket || !socket.connected || enhanceBusy) return
     if (levelRef.current >= 30) return
 
     setEnhanceBusy(true)
     setLastOutcome(null)
-
-    socket.timeout(8000).emit('enhance:request', {}, (err, ack) => {
+    socket.timeout(8000).emit('enhance:request', { useProtection }, (err, ack) => {
       setEnhanceBusy(false)
       if (err) {
         setError('강화 요청 시간이 초과됐습니다.')
@@ -171,11 +181,12 @@ export function useEnhanceSession() {
         return
       }
       setError('')
-      setLevel(ack.newLevel ?? 0)
       setRates(ack.nextRates ?? null)
       applyServerState(ack.state)
       setLastOutcome({
         outcome: ack.outcome,
+        protectedDestroy: ack.protectedDestroy,
+        cost: ack.cost,
         oldLevel: ack.oldLevel,
         newLevel: ack.newLevel,
         rates: ack.rates,
@@ -183,23 +194,34 @@ export function useEnhanceSession() {
     })
   }, [applyServerState, enhanceBusy])
 
-  const sellWeapon = useCallback(() => {
+  const equipWeapon = useCallback((weaponId) => {
     const socket = socketRef.current
     if (!socket || !socket.connected || marketBusy) return
-
     setMarketBusy(true)
-    socket.timeout(8000).emit('weapon:sell', {}, (err, ack) => {
+    socket.timeout(8000).emit('weapon:equip', { weaponId }, (err, ack) => {
       setMarketBusy(false)
-      if (err) {
-        setError('판매 요청 시간이 초과됐습니다.')
+      if (err || !ack?.ok) {
+        setError(ack?.message || '무기를 장착할 수 없습니다.')
         return
       }
-      if (!ack?.ok) {
+      setError('')
+      setRates(ack.ratesPreview ?? null)
+      applyServerState(ack.state)
+      setLastOutcome(null)
+    })
+  }, [applyServerState, marketBusy])
+
+  const sellWeapon = useCallback((weaponId) => {
+    const socket = socketRef.current
+    if (!socket || !socket.connected || marketBusy) return
+    setMarketBusy(true)
+    socket.timeout(8000).emit('weapon:sell', { weaponId }, (err, ack) => {
+      setMarketBusy(false)
+      if (err || !ack?.ok) {
         setError(ack?.message || '무기를 판매할 수 없습니다.')
         return
       }
       setError('')
-      setLevel(ack.level ?? 0)
       setRates(ack.ratesPreview ?? null)
       applyServerState(ack.state)
       setLastOutcome(null)
@@ -209,20 +231,14 @@ export function useEnhanceSession() {
   const buyShopItem = useCallback((itemId) => {
     const socket = socketRef.current
     if (!socket || !socket.connected || marketBusy) return
-
     setMarketBusy(true)
     socket.timeout(8000).emit('shop:buy', { itemId }, (err, ack) => {
       setMarketBusy(false)
-      if (err) {
-        setError('구매 요청 시간이 초과됐습니다.')
-        return
-      }
-      if (!ack?.ok) {
+      if (err || !ack?.ok) {
         setError(ack?.message || '아이템을 구매할 수 없습니다.')
         return
       }
       setError('')
-      setLevel(ack.level ?? 0)
       setRates(ack.ratesPreview ?? null)
       applyServerState(ack.state)
       setLastOutcome(null)
@@ -249,6 +265,7 @@ export function useEnhanceSession() {
     leaveGame,
     sendChat,
     requestEnhance,
+    equipWeapon,
     sellWeapon,
     buyShopItem,
   }
