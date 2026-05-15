@@ -410,6 +410,42 @@ body {
   gap: 14px;
 }
 
+.admin-sections {
+  display: grid;
+  gap: 14px;
+}
+
+.admin-section-title {
+  font-weight: 950;
+  color: var(--gold);
+}
+
+.admin-grant-form {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(120px, 0.65fr) minmax(100px, 0.5fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.admin-player-list {
+  display: grid;
+  gap: 8px;
+  max-height: 320px;
+  overflow: auto;
+}
+
+.admin-player-row {
+  display: grid;
+  grid-template-columns: 1fr 80px 1fr 120px 90px;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(186, 104, 255, 0.18);
+  background: rgba(8, 5, 18, 0.42);
+  font-size: 0.9rem;
+}
+
 .admin-table {
   display: grid;
   gap: 8px;
@@ -756,6 +792,74 @@ body {
   gap: 14px;
 }
 
+.activity-panel {
+  padding: 14px;
+  display: grid;
+  gap: 14px;
+}
+
+.activity-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.activity-card {
+  min-width: 0;
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(186, 104, 255, 0.22);
+  background: rgba(8, 5, 18, 0.45);
+}
+
+.activity-card strong,
+.activity-card span {
+  display: block;
+}
+
+.activity-card strong {
+  font-weight: 950;
+}
+
+.activity-card span {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  font-weight: 760;
+}
+
+.duel-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.duel-controls select {
+  min-width: 0;
+  flex: 1;
+  border-radius: 10px;
+  border: 1px solid rgba(186, 104, 255, 0.36);
+  background: rgba(8, 5, 18, 0.86);
+  color: var(--text);
+  padding: 9px 10px;
+  font-weight: 800;
+}
+
+.duel-alert,
+.duel-result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(245, 215, 66, 0.32);
+  background: rgba(245, 215, 66, 0.08);
+  color: var(--gold);
+  font-weight: 850;
+}
+
 .panel-heading {
   display: flex;
   justify-content: space-between;
@@ -993,6 +1097,12 @@ body {
   .admin-rate-row {
     grid-template-columns: 1fr;
   }
+
+  .activity-grid,
+  .admin-grant-form,
+  .admin-player-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 560px) {
@@ -1027,7 +1137,9 @@ body {
 
   .panel-heading,
   .shop-row,
-  .shop-buy {
+  .shop-buy,
+  .duel-alert,
+  .duel-result {
     align-items: stretch;
     flex-direction: column;
   }

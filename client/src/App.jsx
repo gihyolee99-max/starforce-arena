@@ -33,6 +33,10 @@ export default function App() {
       onSellWeapon={session.sellWeapon}
       onBuyShopItem={session.buyShopItem}
       onEquipWeapon={session.equipWeapon}
+      onPlayMiniGame={session.playMiniGame}
+      onClaimAttendance={session.claimAttendance}
+      onChallengeDuel={session.challengeDuel}
+      onAcceptDuel={session.acceptDuel}
       onLeave={session.leaveGame}
       messages={session.messages}
       onSendChat={session.sendChat}

@@ -18,6 +18,10 @@ const DEFAULT_CLIENT_ORIGINS = ['http://localhost:5173', 'http://127.0.0.1:5173'
 const ADMIN_PASSWORD =
   process.env.ADMIN_PASSWORD || (process.env.NODE_ENV === 'production' ? '' : 'admin123')
 const STARTING_GOLD = 500_000
+const MINI_GAME_COOLDOWN_MS = 8_000
+const DUEL_BASE_REWARD = 120_000
+const DAILY_REWARD_GOLD = 250_000
+const DAILY_REWARD_SCROLLS = 1
 
 const RARITY = {
   common: { label: 'Common', multiplier: 1, color: '#cbd5e1' },
@@ -87,7 +91,7 @@ function getRarityMeta(rarity) {
 function getEnhanceCost(weapon) {
   const meta = getRarityMeta(weapon?.rarity)
   const level = Math.max(0, Number(weapon?.level) || 0)
-  return Math.round((25_000 + level * level * 9_500 + level * 35_000) * meta.multiplier)
+  return Math.round((8_000 + level * level * 1_800 + level * 9_000) * meta.multiplier)
 }
 
 function getSellValue(weapon) {
@@ -125,6 +129,8 @@ function normalizeProfile(raw, nickname) {
     nickname,
     gold: raw ? Math.max(0, Number(raw.gold) || 0) : STARTING_GOLD,
     protectionScrolls: Math.max(0, Number(raw?.protectionScrolls) || 0),
+    lastMiniGameAt: Math.max(0, Number(raw?.lastMiniGameAt) || 0),
+    lastAttendanceDate: String(raw?.lastAttendanceDate || ''),
     activeWeaponId,
     weapons,
   }
@@ -158,6 +164,8 @@ function saveProfiles() {
       {
         gold: profile.gold,
         protectionScrolls: profile.protectionScrolls,
+        lastMiniGameAt: profile.lastMiniGameAt,
+        lastAttendanceDate: profile.lastAttendanceDate,
         activeWeaponId: profile.activeWeaponId,
         weapons: profile.weapons.map(cloneWeapon),
       },
@@ -171,6 +179,8 @@ function saveProfile(player) {
     nickname: player.nickname,
     gold: player.gold,
     protectionScrolls: player.protectionScrolls,
+    lastMiniGameAt: player.lastMiniGameAt,
+    lastAttendanceDate: player.lastAttendanceDate,
     activeWeaponId: player.activeWeaponId,
     weapons: player.weapons.map(cloneWeapon),
   })
@@ -206,9 +216,17 @@ function getPriceTable(activeWeapon) {
 
 function buildPlayerState(player) {
   const activeWeapon = getActiveWeapon(player)
+  const today = getServerDateKey()
   return {
     gold: player.gold,
     protectionScrolls: player.protectionScrolls,
+    miniGameCooldownMs: Math.max(0, MINI_GAME_COOLDOWN_MS - (Date.now() - player.lastMiniGameAt)),
+    attendance: {
+      claimedToday: player.lastAttendanceDate === today,
+      rewardGold: DAILY_REWARD_GOLD,
+      rewardProtectionScrolls: DAILY_REWARD_SCROLLS,
+      today,
+    },
     activeWeaponId: activeWeapon.uid,
     weapon: cloneWeapon(activeWeapon),
     inventory: player.weapons.map(cloneWeapon),
@@ -238,6 +256,7 @@ app.use(express.json())
 const server = http.createServer(app)
 const players = new Map()
 const profiles = loadProfiles()
+const pendingDuels = new Map()
 let rateTiers = loadRateTiers()
 
 app.get('/health', (_req, res) => {
@@ -281,6 +300,76 @@ app.put('/api/admin/rates', (req, res) => {
   })
 })
 
+app.get('/api/admin/players', (req, res) => {
+  if (!isAdminRequest(req)) {
+    res.status(401).json({ ok: false, message: 'Admin password required.' })
+    return
+  }
+  const online = new Set([...players.values()].map((player) => player.nickname))
+  const rows = [...profiles.values()].map((profile) => {
+    const weapon = getActiveWeapon(profile)
+    return {
+      nickname: profile.nickname,
+      gold: profile.gold,
+      protectionScrolls: profile.protectionScrolls,
+      weaponName: weapon.name,
+      level: weapon.level,
+      online: online.has(profile.nickname),
+    }
+  })
+  rows.sort((a, b) => a.nickname.localeCompare(b.nickname))
+  res.json({ ok: true, players: rows })
+})
+
+app.post('/api/admin/grant', (req, res) => {
+  if (!isAdminRequest(req)) {
+    res.status(401).json({ ok: false, message: 'Admin password required.' })
+    return
+  }
+
+  const nickname = sanitizeNickname(req.body?.nickname)
+  if (!nickname) {
+    res.status(400).json({ ok: false, message: 'Nickname is required.' })
+    return
+  }
+
+  const profile = normalizeProfile(profiles.get(nickname), nickname)
+  profile.gold += Math.max(0, Number(req.body?.gold) || 0)
+  profile.protectionScrolls += Math.max(0, Number(req.body?.protectionScrolls) || 0)
+  saveProfile(profile)
+  syncOnlineProfile(nickname, profile)
+
+  io.emit('chat:system', {
+    ts: Date.now(),
+    message: `Admin sent a reward to ${nickname}.`,
+  })
+  broadcastRanking()
+  res.json({ ok: true, player: buildAdminPlayerRow(profile) })
+})
+
+app.post('/api/admin/apology-reward', (req, res) => {
+  if (!isAdminRequest(req)) {
+    res.status(401).json({ ok: false, message: 'Admin password required.' })
+    return
+  }
+
+  const gold = Math.max(0, Number(req.body?.gold) || 4_000_000)
+  const protectionScrolls = Math.max(0, Number(req.body?.protectionScrolls) || 4)
+  for (const profile of profiles.values()) {
+    profile.gold += gold
+    profile.protectionScrolls += protectionScrolls
+    saveProfile(profile)
+    syncOnlineProfile(profile.nickname, profile)
+  }
+
+  io.emit('chat:system', {
+    ts: Date.now(),
+    message: `Maintenance reward sent: ${gold.toLocaleString('ko-KR')} gold and ${protectionScrolls} protection scrolls.`,
+  })
+  broadcastRanking()
+  res.json({ ok: true, count: profiles.size, gold, protectionScrolls })
+})
+
 const serveStatic = process.env.NODE_ENV === 'production' || process.env.SERVE_STATIC === '1'
 
 if (serveStatic) {
@@ -304,6 +393,102 @@ function sanitizeNickname(raw) {
 
 function buildUserList() {
   return [...players.entries()].map(([id, p]) => ({ id, nickname: p.nickname }))
+}
+
+function buildAdminPlayerRow(profile) {
+  const weapon = getActiveWeapon(profile)
+  return {
+    nickname: profile.nickname,
+    gold: profile.gold,
+    protectionScrolls: profile.protectionScrolls,
+    weaponName: weapon.name,
+    level: weapon.level,
+  }
+}
+
+function syncOnlineProfile(nickname, profile) {
+  for (const [socketId, player] of players.entries()) {
+    if (player.nickname !== nickname) continue
+    player.gold = profile.gold
+    player.protectionScrolls = profile.protectionScrolls
+    player.lastMiniGameAt = profile.lastMiniGameAt
+    player.lastAttendanceDate = profile.lastAttendanceDate
+    player.activeWeaponId = profile.activeWeaponId
+    player.weapons = profile.weapons.map(cloneWeapon)
+    const socket = io.sockets.sockets.get(socketId)
+    if (socket) {
+      socket.emit('state:update', {
+        level: getActiveWeapon(player).level,
+        ratesPreview: getRatesForLevel(getActiveWeapon(player).level, rateTiers),
+        state: buildPlayerState(player),
+      })
+    }
+  }
+}
+
+function getServerDateKey() {
+  return new Date().toISOString().slice(0, 10)
+}
+
+function getSocketByNickname(nickname) {
+  for (const [socketId, player] of players.entries()) {
+    if (player.nickname === nickname) return io.sockets.sockets.get(socketId)
+  }
+  return null
+}
+
+function emitPlayerState(socket, player) {
+  const weapon = getActiveWeapon(player)
+  socket.emit('state:update', {
+    level: weapon.level,
+    ratesPreview: getRatesForLevel(weapon.level, rateTiers),
+    state: buildPlayerState(player),
+  })
+}
+
+function getDuelPower(player) {
+  const weapon = getActiveWeapon(player)
+  const rarityBonus = getRarityMeta(weapon.rarity).multiplier
+  return Math.round(weapon.level * 18 * rarityBonus + player.gold / 250_000 + Math.random() * 100)
+}
+
+function resolveDuel(challenge) {
+  const challenger = players.get(challenge.challengerSocketId)
+  const target = players.get(challenge.targetSocketId)
+  const challengerSocket = io.sockets.sockets.get(challenge.challengerSocketId)
+  const targetSocket = io.sockets.sockets.get(challenge.targetSocketId)
+  if (!challenger || !target || !challengerSocket || !targetSocket) return null
+
+  const challengerPower = getDuelPower(challenger)
+  const targetPower = getDuelPower(target)
+  const challengerWon = challengerPower >= targetPower
+  const winner = challengerWon ? challenger : target
+  const loser = challengerWon ? target : challenger
+  const winnerSocket = challengerWon ? challengerSocket : targetSocket
+  const loserSocket = challengerWon ? targetSocket : challengerSocket
+
+  winner.gold += DUEL_BASE_REWARD
+  saveProfile(winner)
+  saveProfile(loser)
+  emitPlayerState(winnerSocket, winner)
+  emitPlayerState(loserSocket, loser)
+
+  const result = {
+    challenger: challenger.nickname,
+    target: target.nickname,
+    winner: winner.nickname,
+    reward: DUEL_BASE_REWARD,
+    challengerPower,
+    targetPower,
+  }
+  challengerSocket.emit('duel:result', result)
+  targetSocket.emit('duel:result', result)
+  io.emit('chat:system', {
+    ts: Date.now(),
+    message: `${winner.nickname} won a duel against ${loser.nickname} and earned ${DUEL_BASE_REWARD.toLocaleString('ko-KR')} gold.`,
+  })
+  broadcastRanking()
+  return result
 }
 
 function buildRanking() {
@@ -517,6 +702,121 @@ io.on('connection', (socket) => {
       message: `${p.nickname} bought ${item.name || WEAPON_CATALOG[item.catalogId]?.name}.`,
     })
     broadcastRanking()
+  })
+
+  socket.on('minigame:mine', (_payload, ack) => {
+    const p = players.get(socket.id)
+    if (!p) {
+      ack?.({ ok: false, message: 'Session not found. Please reconnect.' })
+      return
+    }
+
+    const now = Date.now()
+    const remaining = MINI_GAME_COOLDOWN_MS - (now - p.lastMiniGameAt)
+    if (remaining > 0) {
+      ack?.({ ok: false, message: `Mini game cooldown: ${Math.ceil(remaining / 1000)}s left.` })
+      return
+    }
+
+    const weapon = getActiveWeapon(p)
+    const jackpot = Math.random() < 0.12
+    const reward = jackpot
+      ? 220_000 + weapon.level * 18_000
+      : 55_000 + Math.floor(Math.random() * 75_000) + weapon.level * 7_500
+    p.gold += reward
+    p.lastMiniGameAt = now
+    saveProfile(p)
+
+    ack?.({
+      ok: true,
+      reward,
+      jackpot,
+      state: buildPlayerState(p),
+    })
+    broadcastRanking()
+  })
+
+  socket.on('attendance:claim', (_payload, ack) => {
+    const p = players.get(socket.id)
+    if (!p) {
+      ack?.({ ok: false, message: 'Session not found. Please reconnect.' })
+      return
+    }
+
+    const today = getServerDateKey()
+    if (p.lastAttendanceDate === today) {
+      ack?.({ ok: false, message: 'Attendance reward already claimed today.' })
+      return
+    }
+
+    p.gold += DAILY_REWARD_GOLD
+    p.protectionScrolls += DAILY_REWARD_SCROLLS
+    p.lastAttendanceDate = today
+    saveProfile(p)
+
+    ack?.({
+      ok: true,
+      rewardGold: DAILY_REWARD_GOLD,
+      rewardProtectionScrolls: DAILY_REWARD_SCROLLS,
+      state: buildPlayerState(p),
+    })
+    io.emit('chat:system', {
+      ts: Date.now(),
+      message: `${p.nickname} claimed attendance reward.`,
+    })
+    broadcastRanking()
+  })
+
+  socket.on('duel:challenge', (payload, ack) => {
+    const challenger = players.get(socket.id)
+    const targetNickname = sanitizeNickname(payload?.targetNickname)
+    const targetSocket = targetNickname ? getSocketByNickname(targetNickname) : null
+    const target = targetSocket ? players.get(targetSocket.id) : null
+
+    if (!challenger) {
+      ack?.({ ok: false, message: 'Session not found. Please reconnect.' })
+      return
+    }
+    if (!targetSocket || !target) {
+      ack?.({ ok: false, message: 'Target player is not online.' })
+      return
+    }
+    if (targetSocket.id === socket.id) {
+      ack?.({ ok: false, message: 'You cannot duel yourself.' })
+      return
+    }
+
+    const id = `${socket.id}-${targetSocket.id}-${Date.now()}`
+    const challenge = {
+      id,
+      challengerSocketId: socket.id,
+      targetSocketId: targetSocket.id,
+      createdAt: Date.now(),
+    }
+    pendingDuels.set(id, challenge)
+    setTimeout(() => pendingDuels.delete(id), 30_000)
+
+    targetSocket.emit('duel:challenge', {
+      id,
+      from: challenger.nickname,
+      reward: DUEL_BASE_REWARD,
+    })
+    ack?.({ ok: true, challengeId: id, target: target.nickname })
+  })
+
+  socket.on('duel:accept', (payload, ack) => {
+    const challenge = pendingDuels.get(payload?.challengeId)
+    if (!challenge || challenge.targetSocketId !== socket.id) {
+      ack?.({ ok: false, message: 'Duel challenge not found.' })
+      return
+    }
+    pendingDuels.delete(challenge.id)
+    const result = resolveDuel(challenge)
+    if (!result) {
+      ack?.({ ok: false, message: 'Duel could not be resolved.' })
+      return
+    }
+    ack?.({ ok: true, result })
   })
 
   socket.on('disconnect', () => {

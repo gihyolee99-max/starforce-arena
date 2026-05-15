@@ -24,6 +24,11 @@ const EMPTY_STATE = {
   enhanceCost: 0,
   sellValue: 0,
   priceTable: [],
+  attendance: null,
+  miniGameCooldownMs: 0,
+  pendingDuel: null,
+  lastDuelResult: null,
+  lastMiniGameReward: null,
 }
 
 export function useEnhanceSession() {
@@ -50,7 +55,10 @@ export function useEnhanceSession() {
   const applyServerState = useCallback((state) => {
     if (!state) return
     const weapon = state.weapon ?? EMPTY_WEAPON
-    setPlayerState({
+    setPlayerState((prev) => ({
+      pendingDuel: prev.pendingDuel,
+      lastDuelResult: prev.lastDuelResult,
+      lastMiniGameReward: prev.lastMiniGameReward,
       gold: state.gold ?? 0,
       protectionScrolls: state.protectionScrolls ?? 0,
       activeWeaponId: state.activeWeaponId ?? weapon.uid,
@@ -61,7 +69,9 @@ export function useEnhanceSession() {
       enhanceCost: state.enhanceCost ?? 0,
       sellValue: state.sellValue ?? 0,
       priceTable: Array.isArray(state.priceTable) ? state.priceTable : [],
-    })
+      attendance: state.attendance ?? null,
+      miniGameCooldownMs: state.miniGameCooldownMs ?? 0,
+    }))
     setLevel(weapon.level ?? 0)
   }, [])
 
@@ -73,6 +83,14 @@ export function useEnhanceSession() {
     socketRef.current = null
     setConnected(false)
     setSocketId('')
+  }, [])
+
+  const pushMessage = useCallback((msg) => {
+    setMessages((prev) => {
+      const next = [...prev, msg]
+      if (next.length > MAX_CHAT) next.splice(0, next.length - MAX_CHAT)
+      return next
+    })
   }, [])
 
   const joinGame = useCallback((name) => {
@@ -116,20 +134,8 @@ export function useEnhanceSession() {
     socket.on('disconnect', () => setConnected(false))
     socket.on('users:update', (list) => setUsers(Array.isArray(list) ? list : []))
     socket.on('ranking:update', (rows) => setRanking(Array.isArray(rows) ? rows : []))
-    socket.on('chat:message', (msg) => {
-      setMessages((prev) => {
-        const next = [...prev, msg]
-        if (next.length > MAX_CHAT) next.splice(0, next.length - MAX_CHAT)
-        return next
-      })
-    })
-    socket.on('chat:system', (msg) => {
-      setMessages((prev) => {
-        const next = [...prev, { ...msg, system: true }]
-        if (next.length > MAX_CHAT) next.splice(0, next.length - MAX_CHAT)
-        return next
-      })
-    })
+    socket.on('chat:message', (msg) => pushMessage(msg))
+    socket.on('chat:system', (msg) => pushMessage({ ...msg, system: true }))
     socket.on('enhance:broadcast', (row) => {
       setFeed((prev) => {
         const next = [row, ...prev]
@@ -138,8 +144,24 @@ export function useEnhanceSession() {
       })
     })
     socket.on('rates:update', (nextRates) => setRates(nextRates ?? null))
+    socket.on('state:update', (payload) => {
+      if (payload?.ratesPreview) setRates(payload.ratesPreview)
+      applyServerState(payload?.state)
+    })
+    socket.on('duel:challenge', (challenge) => {
+      pushMessage({
+        ts: Date.now(),
+        system: true,
+        message: `${challenge.from}님이 1대1 대결을 신청했습니다.`,
+      })
+      setPlayerState((prev) => ({ ...prev, pendingDuel: challenge }))
+    })
+    socket.on('duel:result', (result) => {
+      setPlayerState((prev) => ({ ...prev, lastDuelResult: result, pendingDuel: null }))
+    })
+
     socket.connect()
-  }, [applyServerState, teardownSocket])
+  }, [applyServerState, pushMessage, teardownSocket])
 
   const leaveGame = useCallback(() => {
     teardownSocket()
@@ -172,11 +194,7 @@ export function useEnhanceSession() {
     setLastOutcome(null)
     socket.timeout(8000).emit('enhance:request', { useProtection }, (err, ack) => {
       setEnhanceBusy(false)
-      if (err) {
-        setError('강화 요청 시간이 초과됐습니다.')
-        return
-      }
-      if (!ack?.ok) {
+      if (err || !ack?.ok) {
         setError(ack?.message || '강화를 처리할 수 없습니다.')
         return
       }
@@ -194,56 +212,84 @@ export function useEnhanceSession() {
     })
   }, [applyServerState, enhanceBusy])
 
-  const equipWeapon = useCallback((weaponId) => {
+  const emitMarketAction = useCallback((event, payload, failureMessage) => {
     const socket = socketRef.current
     if (!socket || !socket.connected || marketBusy) return
     setMarketBusy(true)
-    socket.timeout(8000).emit('weapon:equip', { weaponId }, (err, ack) => {
+    socket.timeout(8000).emit(event, payload, (err, ack) => {
       setMarketBusy(false)
       if (err || !ack?.ok) {
-        setError(ack?.message || '무기를 장착할 수 없습니다.')
+        setError(ack?.message || failureMessage)
         return
       }
       setError('')
-      setRates(ack.ratesPreview ?? null)
+      if (ack.ratesPreview) setRates(ack.ratesPreview)
+      if (ack.nextRates) setRates(ack.nextRates)
       applyServerState(ack.state)
       setLastOutcome(null)
     })
   }, [applyServerState, marketBusy])
+
+  const equipWeapon = useCallback((weaponId) => {
+    emitMarketAction('weapon:equip', { weaponId }, '무기를 장착할 수 없습니다.')
+  }, [emitMarketAction])
 
   const sellWeapon = useCallback((weaponId) => {
+    emitMarketAction('weapon:sell', { weaponId }, '무기를 판매할 수 없습니다.')
+  }, [emitMarketAction])
+
+  const buyShopItem = useCallback((itemId) => {
+    emitMarketAction('shop:buy', { itemId }, '아이템을 구매할 수 없습니다.')
+  }, [emitMarketAction])
+
+  const playMiniGame = useCallback(() => {
     const socket = socketRef.current
     if (!socket || !socket.connected || marketBusy) return
     setMarketBusy(true)
-    socket.timeout(8000).emit('weapon:sell', { weaponId }, (err, ack) => {
+    socket.timeout(8000).emit('minigame:mine', {}, (err, ack) => {
       setMarketBusy(false)
       if (err || !ack?.ok) {
-        setError(ack?.message || '무기를 판매할 수 없습니다.')
+        setError(ack?.message || '미니게임 보상을 받을 수 없습니다.')
         return
       }
       setError('')
-      setRates(ack.ratesPreview ?? null)
       applyServerState(ack.state)
-      setLastOutcome(null)
+      setPlayerState((prev) => ({ ...prev, lastMiniGameReward: ack }))
     })
   }, [applyServerState, marketBusy])
 
-  const buyShopItem = useCallback((itemId) => {
+  const claimAttendance = useCallback(() => {
+    emitMarketAction('attendance:claim', {}, '출석 보상을 받을 수 없습니다.')
+  }, [emitMarketAction])
+
+  const challengeDuel = useCallback((targetNickname) => {
     const socket = socketRef.current
     if (!socket || !socket.connected || marketBusy) return
     setMarketBusy(true)
-    socket.timeout(8000).emit('shop:buy', { itemId }, (err, ack) => {
+    socket.timeout(8000).emit('duel:challenge', { targetNickname }, (err, ack) => {
       setMarketBusy(false)
       if (err || !ack?.ok) {
-        setError(ack?.message || '아이템을 구매할 수 없습니다.')
+        setError(ack?.message || '대결 신청에 실패했습니다.')
         return
       }
       setError('')
-      setRates(ack.ratesPreview ?? null)
-      applyServerState(ack.state)
-      setLastOutcome(null)
     })
-  }, [applyServerState, marketBusy])
+  }, [marketBusy])
+
+  const acceptDuel = useCallback((challengeId) => {
+    const socket = socketRef.current
+    if (!socket || !socket.connected || marketBusy) return
+    setMarketBusy(true)
+    socket.timeout(8000).emit('duel:accept', { challengeId }, (err, ack) => {
+      setMarketBusy(false)
+      if (err || !ack?.ok) {
+        setError(ack?.message || '대결 수락에 실패했습니다.')
+        return
+      }
+      setError('')
+      setPlayerState((prev) => ({ ...prev, lastDuelResult: ack.result, pendingDuel: null }))
+    })
+  }, [marketBusy])
 
   return {
     phase,
@@ -268,5 +314,9 @@ export function useEnhanceSession() {
     equipWeapon,
     sellWeapon,
     buyShopItem,
+    playMiniGame,
+    claimAttendance,
+    challengeDuel,
+    acceptDuel,
   }
 }

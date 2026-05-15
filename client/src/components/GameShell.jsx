@@ -5,11 +5,11 @@ import { RankingPanel } from './RankingPanel.jsx'
 import { OnlineUsers } from './OnlineUsers.jsx'
 import { EnhanceFeed } from './EnhanceFeed.jsx'
 import { MarketPanel } from './MarketPanel.jsx'
+import { ActivityPanel } from './ActivityPanel.jsx'
 
 export function GameShell({
   nickname,
   connected,
-  level,
   rates,
   enhanceBusy,
   marketBusy,
@@ -18,6 +18,10 @@ export function GameShell({
   onSellWeapon,
   onBuyShopItem,
   onEquipWeapon,
+  onPlayMiniGame,
+  onClaimAttendance,
+  onChallengeDuel,
+  onAcceptDuel,
   onLeave,
   messages,
   onSendChat,
@@ -27,7 +31,8 @@ export function GameShell({
   feed,
   playerState,
 }) {
-  const maxed = level >= 30
+  const activeLevel = playerState.weapon?.level ?? 0
+  const maxed = activeLevel >= 30
   const [useProtection, setUseProtection] = useState(false)
 
   return (
@@ -62,7 +67,7 @@ export function GameShell({
 
         <main className="arena-layout">
           <EquipmentPanel
-            level={level}
+            level={activeLevel}
             weapon={playerState.weapon}
             rates={rates}
             busy={enhanceBusy}
@@ -76,6 +81,20 @@ export function GameShell({
             lastOutcome={lastOutcome}
           />
           <ChatPanel messages={messages} onSend={onSendChat} />
+          <ActivityPanel
+            users={users}
+            nickname={nickname}
+            attendance={playerState.attendance}
+            miniGameCooldownMs={playerState.miniGameCooldownMs}
+            pendingDuel={playerState.pendingDuel}
+            lastDuelResult={playerState.lastDuelResult}
+            lastMiniGameReward={playerState.lastMiniGameReward}
+            busy={marketBusy}
+            onMiniGame={onPlayMiniGame}
+            onAttendance={onClaimAttendance}
+            onChallenge={onChallengeDuel}
+            onAcceptDuel={onAcceptDuel}
+          />
           <MarketPanel
             gold={playerState.gold}
             activeWeaponId={playerState.activeWeaponId}
