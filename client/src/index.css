@@ -173,6 +173,186 @@ body {
   border-radius: 999px;
 }
 
+.login-root {
+  display: grid;
+  place-items: center;
+  padding: 32px 18px;
+  overflow: hidden;
+}
+
+.login-shell {
+  width: min(1040px, 100%);
+  min-height: min(680px, calc(100svh - 64px));
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);
+  gap: 20px;
+  align-items: stretch;
+}
+
+.login-copy,
+.login-card {
+  border: 1px solid rgba(186, 104, 255, 0.28);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), transparent 26%),
+    rgba(12, 8, 24, 0.78);
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.38),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(16px);
+}
+
+.login-copy {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 22px;
+  min-height: 520px;
+  padding: clamp(28px, 5vw, 56px);
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.login-copy::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(120deg, rgba(10, 6, 18, 0.08), rgba(10, 6, 18, 0.7)),
+    url('/equipment.jpg.jpeg') center / cover;
+  opacity: 0.28;
+  filter: saturate(1.1) contrast(1.05);
+}
+
+.login-copy::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  height: 38%;
+  background: linear-gradient(180deg, transparent, rgba(10, 6, 18, 0.92));
+}
+
+.login-copy > * {
+  position: relative;
+  z-index: 1;
+}
+
+.login-title {
+  max-width: 620px;
+  font-size: clamp(2.8rem, 8vw, 6.2rem);
+  line-height: 0.92;
+  letter-spacing: 0;
+}
+
+.login-lead {
+  max-width: 560px;
+  margin: 0;
+  color: var(--text);
+  font-size: clamp(1rem, 2.1vw, 1.25rem);
+  line-height: 1.65;
+  font-weight: 650;
+}
+
+.login-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+  max-width: 560px;
+}
+
+.login-metrics div {
+  min-width: 0;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(245, 215, 66, 0.24);
+  background: rgba(8, 5, 18, 0.62);
+}
+
+.login-metrics strong,
+.login-metrics span {
+  display: block;
+}
+
+.login-metrics strong {
+  color: var(--gold);
+  font-size: 1.05rem;
+  font-weight: 950;
+}
+
+.login-metrics span {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.login-card {
+  display: grid;
+  align-content: center;
+  gap: 22px;
+  padding: clamp(24px, 4vw, 42px);
+  border-radius: 18px;
+}
+
+.login-weapon {
+  display: grid;
+  gap: 16px;
+  justify-items: center;
+  text-align: center;
+}
+
+.login-weapon img {
+  width: min(260px, 76%);
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 18px;
+  border: 1px solid rgba(245, 215, 66, 0.34);
+  box-shadow:
+    0 0 50px rgba(245, 215, 66, 0.18),
+    0 0 70px rgba(168, 85, 247, 0.24);
+}
+
+.login-weapon span,
+.login-form label {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 850;
+}
+
+.login-weapon strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--text);
+  font-size: 1.35rem;
+  font-weight: 950;
+}
+
+.login-form {
+  display: grid;
+  gap: 12px;
+}
+
+.login-input {
+  max-width: none;
+}
+
+.login-error {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 77, 109, 0.3);
+  background: rgba(255, 77, 109, 0.08);
+  color: var(--danger);
+  font-size: 0.92rem;
+  font-weight: 750;
+}
+
+.login-submit {
+  width: 100%;
+  margin-top: 4px;
+}
+
 .game-header {
   display: flex;
   flex-wrap: wrap;
@@ -340,6 +520,14 @@ body {
 }
 
 @media (max-width: 960px) {
+  .login-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .login-copy {
+    min-height: 420px;
+  }
+
   .mmorpg-grid {
     grid-template-columns: 1fr !important;
   }
@@ -350,6 +538,28 @@ body {
 }
 
 @media (max-width: 560px) {
+  .login-root {
+    padding: 14px;
+  }
+
+  .login-shell {
+    min-height: auto;
+  }
+
+  .login-copy,
+  .login-card {
+    border-radius: 14px;
+  }
+
+  .login-copy {
+    min-height: 360px;
+    padding: 24px;
+  }
+
+  .login-metrics {
+    grid-template-columns: 1fr;
+  }
+
   .shop-grid,
   .rate-grid,
   .market-stat {
