@@ -9,60 +9,66 @@ export function LoginScreen({ onStart, busy, error }) {
   }
 
   return (
-    <div
-      className="mmorpg-root"
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '28px 18px',
-      }}
-    >
-      <div
-        className="mmorpg-panel"
-        style={{
-          width: '100%',
-          maxWidth: 460,
-          padding: '34px 28px 30px',
-          textAlign: 'center',
-        }}
-      >
-        <div className="mmorpg-tag" style={{ marginBottom: 14 }}>
-          이기효 · 이동훈 · 이민우
-        </div>
-        <h1 className="mmorpg-title" style={{ fontSize: 'clamp(1.6rem, 4vw, 2.1rem)' }}>
-          테스트 강화 아레나
-        </h1>
-        <p className="mmorpg-sub">이기효 테스트 서버 — 던파 × 메이플 감성 실시간 멀티 강화</p>
+    <div className="mmorpg-root login-root">
+      <main className="login-shell">
+        <section className="login-copy" aria-labelledby="login-title">
+          <div className="mmorpg-tag">LIVE MULTIPLAYER</div>
+          <h1 id="login-title" className="mmorpg-title login-title">
+            Starforce Arena
+          </h1>
+          <p className="login-lead">
+            친구들과 같은 서버에서 강화하고, 판매하고, 더 좋은 무기로 다시 도전하세요.
+          </p>
 
-        <form onSubmit={submit} style={{ marginTop: 26, display: 'grid', gap: 14 }}>
-          <input
-            className="mmorpg-input"
-            placeholder="닉네임을 입력하세요 (최대 14자)"
-            maxLength={14}
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            autoFocus
-            disabled={busy}
-            aria-label="닉네임"
-          />
-          {error ? (
-            <div
-              role="alert"
-              style={{
-                color: 'var(--danger)',
-                fontSize: '0.92rem',
-                fontWeight: 600,
-              }}
-            >
-              {error}
+          <div className="login-metrics" aria-label="게임 특징">
+            <div>
+              <strong>+30</strong>
+              <span>최대 강화</span>
             </div>
-          ) : null}
-          <button className="mmorpg-btn" type="submit" disabled={busy} style={{ width: '100%' }}>
-            {busy ? '세계에 접속 중…' : '게임 시작'}
-          </button>
-        </form>
-      </div>
+            <div>
+              <strong>LIVE</strong>
+              <span>실시간 채팅</span>
+            </div>
+            <div>
+              <strong>SHOP</strong>
+              <span>무기 거래</span>
+            </div>
+          </div>
+        </section>
+
+        <section className="login-card" aria-label="게임 접속">
+          <div className="login-weapon">
+            <img src="/equipment.jpg.jpeg" alt="강화 장비" draggable={false} />
+            <div>
+              <span>현재 시즌</span>
+              <strong>강화 아레나</strong>
+            </div>
+          </div>
+
+          <form onSubmit={submit} className="login-form">
+            <label htmlFor="nickname">닉네임</label>
+            <input
+              id="nickname"
+              className="mmorpg-input login-input"
+              placeholder="최대 14자"
+              maxLength={14}
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              autoFocus
+              disabled={busy}
+              aria-label="닉네임"
+            />
+            {error ? (
+              <div role="alert" className="login-error">
+                {error}
+              </div>
+            ) : null}
+            <button className="mmorpg-btn login-submit" type="submit" disabled={busy}>
+              {busy ? '서버 접속 중...' : '아레나 입장'}
+            </button>
+          </form>
+        </section>
+      </main>
     </div>
   )
 }
