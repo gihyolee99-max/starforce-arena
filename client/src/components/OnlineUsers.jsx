@@ -2,13 +2,13 @@ export function OnlineUsers({ users, selfId }) {
   return (
     <div className="mmorpg-panel" style={{ padding: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 10 }}>
-        <div style={{ fontWeight: 900, letterSpacing: '-0.02em' }}>접속 유저</div>
+        <div style={{ fontWeight: 900 }}>접속 유저</div>
         <span className="mmorpg-tag">{users.length}명</span>
       </div>
 
       <div className="mmorpg-scroll" style={{ maxHeight: 220, display: 'grid', gap: 8 }}>
         {users.length === 0 ? (
-          <div style={{ color: 'var(--text-muted)', fontWeight: 700, fontSize: '0.92rem' }}>접속자 정보를 불러오는 중…</div>
+          <div style={{ color: 'var(--text-muted)', fontWeight: 700, fontSize: '0.92rem' }}>접속 정보를 불러오는 중</div>
         ) : (
           users.map((u) => {
             const self = u.id === selfId

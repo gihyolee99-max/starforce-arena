@@ -1,14 +1,12 @@
 /**
- * 서버 전용 강화 확률 및 결과 판정 (+0 ~ +30)
- * 성공: +1, 실패: -1 (최소 +0), 파괴: +0으로 초기화
+ * Server-side enhancement odds and result calculation for +0 through +30.
+ * success: +1, fail: -1 with +0 floor, destroy: reset to +0.
  */
 
 export function getRatesForLevel(currentLevel) {
   let L = currentLevel
   if (L < 0) L = 0
-  if (L >= 30) {
-    return null
-  }
+  if (L >= 30) return null
 
   let success
   let destroy

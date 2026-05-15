@@ -22,8 +22,11 @@ export default function App() {
       level={session.level}
       rates={session.rates}
       enhanceBusy={session.enhanceBusy}
+      marketBusy={session.marketBusy}
       lastOutcome={session.lastOutcome}
       onEnhance={session.requestEnhance}
+      onSellWeapon={session.sellWeapon}
+      onBuyShopItem={session.buyShopItem}
       onLeave={session.leaveGame}
       messages={session.messages}
       onSendChat={session.sendChat}
@@ -31,6 +34,7 @@ export default function App() {
       users={session.users}
       socketId={session.socketId}
       feed={session.feed}
+      playerState={session.playerState}
     />
   )
 }

@@ -3,6 +3,7 @@ import { ChatPanel } from './ChatPanel.jsx'
 import { RankingPanel } from './RankingPanel.jsx'
 import { OnlineUsers } from './OnlineUsers.jsx'
 import { EnhanceFeed } from './EnhanceFeed.jsx'
+import { MarketPanel } from './MarketPanel.jsx'
 
 export function GameShell({
   nickname,
@@ -10,8 +11,11 @@ export function GameShell({
   level,
   rates,
   enhanceBusy,
+  marketBusy,
   lastOutcome,
   onEnhance,
+  onSellWeapon,
+  onBuyShopItem,
   onLeave,
   messages,
   onSendChat,
@@ -19,69 +23,61 @@ export function GameShell({
   users,
   socketId,
   feed,
+  playerState,
 }) {
   const maxed = level >= 30
 
   return (
     <div className="mmorpg-root" style={{ padding: '16px 14px 22px' }}>
-      <header
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: 12,
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: 14,
-        }}
-      >
+      <header className="game-header">
         <div style={{ textAlign: 'left' }}>
           <div className="mmorpg-tag" style={{ marginBottom: 8 }}>
             {connected ? 'CONNECTED' : 'DISCONNECTED'}
           </div>
           <div className="mmorpg-title" style={{ fontSize: 'clamp(1.25rem, 3.2vw, 1.75rem)' }}>
-            이기효 테스트 강화 아레나
+            스타포스 강화 아레나
           </div>
           <div className="mmorpg-sub" style={{ marginTop: 6 }}>
-            접속 중인 기사: <span style={{ color: 'var(--gold-dim)', fontWeight: 900 }}>{nickname}</span>
+            접속 기사: <span style={{ color: 'var(--gold-dim)', fontWeight: 900 }}>{nickname}</span>
           </div>
         </div>
 
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          <div className="wallet-pill">{Number(playerState.gold || 0).toLocaleString('ko-KR')} 골드</div>
           <button type="button" className="mmorpg-btn mmorpg-btn--ghost" onClick={onLeave}>
             로그아웃
           </button>
         </div>
       </header>
 
-      <div
-        className="mmorpg-grid"
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'minmax(0, 1.05fr) minmax(0, 1.35fr) minmax(0, 1fr)',
-          gap: 12,
-          alignItems: 'start',
-        }}
-      >
-        <div style={{ display: 'grid', gap: 12 }}>
+      <div className="mmorpg-grid">
+        <aside className="side-stack">
           <OnlineUsers users={users} selfId={socketId} />
           <RankingPanel ranking={ranking} nickname={nickname} />
-        </div>
+        </aside>
 
-        <div style={{ display: 'grid', gap: 12 }}>
+        <main className="arena-layout">
           <EquipmentPanel
             level={level}
+            weapon={playerState.weapon}
             rates={rates}
             busy={enhanceBusy}
             maxed={maxed}
             onEnhance={onEnhance}
             lastOutcome={lastOutcome}
           />
-          <EnhanceFeed feed={feed} />
-        </div>
-
-        <div style={{ display: 'grid', gap: 12 }}>
           <ChatPanel messages={messages} onSend={onSendChat} />
-        </div>
+          <MarketPanel
+            gold={playerState.gold}
+            weapon={playerState.weapon}
+            sellValue={playerState.sellValue}
+            shopItems={playerState.shopItems}
+            busy={marketBusy}
+            onSell={onSellWeapon}
+            onBuy={onBuyShopItem}
+          />
+          <EnhanceFeed feed={feed} />
+        </main>
       </div>
     </div>
   )

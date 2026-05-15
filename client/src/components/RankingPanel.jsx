@@ -2,17 +2,17 @@ export function RankingPanel({ ranking, nickname }) {
   return (
     <div className="mmorpg-panel" style={{ padding: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 10 }}>
-        <div style={{ fontWeight: 900, letterSpacing: '-0.02em' }}>실시간 랭킹</div>
-        <span className="mmorpg-tag">이기효 TEST</span>
+        <div style={{ fontWeight: 900 }}>실시간 랭킹</div>
+        <span className="mmorpg-tag">ARENA</span>
       </div>
 
       <div className="mmorpg-scroll" style={{ maxHeight: 320, borderRadius: 12, overflow: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.92rem' }}>
           <thead>
             <tr style={{ color: 'var(--text-muted)', textAlign: 'left' }}>
-              <th style={{ padding: '8px 8px', width: 54 }}>#</th>
+              <th style={{ padding: '8px 8px', width: 48 }}>#</th>
               <th style={{ padding: '8px 8px' }}>닉네임</th>
-              <th style={{ padding: '8px 8px', textAlign: 'right', width: 90 }}>강화</th>
+              <th style={{ padding: '8px 8px', textAlign: 'right', width: 74 }}>강화</th>
             </tr>
           </thead>
           <tbody>
@@ -34,7 +34,12 @@ export function RankingPanel({ ranking, nickname }) {
                     }}
                   >
                     <td style={{ padding: '9px 8px', fontWeight: 900, color: 'var(--violet)' }}>{row.rank}</td>
-                    <td style={{ padding: '9px 8px', fontWeight: mine ? 900 : 700 }}>{row.nickname}</td>
+                    <td style={{ padding: '9px 8px', fontWeight: mine ? 900 : 700 }}>
+                      <div>{row.nickname}</div>
+                      {row.weaponName ? (
+                        <div style={{ color: 'var(--text-muted)', fontSize: '0.78rem', marginTop: 2 }}>{row.weaponName}</div>
+                      ) : null}
+                    </td>
                     <td style={{ padding: '9px 8px', textAlign: 'right', fontWeight: 900, color: 'var(--gold)' }}>+{row.level}</td>
                   </tr>
                 )

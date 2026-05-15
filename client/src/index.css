@@ -173,8 +173,194 @@ body {
   border-radius: 999px;
 }
 
+.game-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.wallet-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 46px;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(245, 215, 66, 0.4);
+  background: rgba(8, 5, 18, 0.7);
+  color: var(--gold);
+  font-weight: 950;
+  box-shadow: var(--shadow-gold);
+}
+
+.mmorpg-grid {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.7fr) minmax(0, 2.3fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.side-stack,
+.arena-layout {
+  display: grid;
+  gap: 12px;
+}
+
+.arena-layout {
+  grid-template-columns: minmax(340px, 1.1fr) minmax(300px, 0.9fr);
+  align-items: stretch;
+}
+
+.equipment-panel {
+  padding: 22px 18px 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.equipment-frame {
+  margin: 10px auto 6px;
+  width: min(320px, 92%);
+  aspect-ratio: 1 / 1;
+  border-radius: 18px;
+  border: 1px solid rgba(245, 215, 66, 0.35);
+  background: linear-gradient(180deg, rgba(60, 20, 90, 0.55), rgba(10, 6, 20, 0.92));
+  box-shadow:
+    inset 0 0 40px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(186, 104, 255, 0.25),
+    var(--shadow-purple);
+  display: grid;
+  place-items: center;
+  position: relative;
+}
+
+.equipment-caption {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-weight: 800;
+}
+
+.equipment-caption span:last-child {
+  color: var(--violet);
+}
+
+.equipment-level {
+  margin-top: 10px;
+  font-size: clamp(2.1rem, 6vw, 3rem);
+  font-weight: 950;
+  color: var(--text);
+  text-shadow: 0 0 22px rgba(186, 104, 255, 0.35);
+}
+
+.rate-grid {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.rate-card {
+  padding: 10px 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(186, 104, 255, 0.22);
+  background: rgba(8, 5, 18, 0.55);
+  font-weight: 900;
+}
+
+.chat-panel {
+  padding: 12px;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 10px;
+  min-height: 100%;
+}
+
+.chat-log {
+  min-height: 360px;
+  max-height: 560px;
+  border-radius: 12px;
+  padding: 10px;
+  background: rgba(8, 5, 18, 0.55);
+  border: 1px solid rgba(186, 104, 255, 0.22);
+}
+
+.market-stat {
+  min-width: 0;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(186, 104, 255, 0.22);
+  background: rgba(8, 5, 18, 0.45);
+  text-align: left;
+}
+
+.market-stat span {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.market-stat strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--text);
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.shop-item,
+.feed-row {
+  text-align: left;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(186, 104, 255, 0.22);
+  background: rgba(8, 5, 18, 0.45);
+}
+
+.shop-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
 @media (max-width: 960px) {
   .mmorpg-grid {
     grid-template-columns: 1fr !important;
+  }
+
+  .arena-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .shop-grid,
+  .rate-grid,
+  .market-stat {
+    grid-template-columns: 1fr;
+  }
+
+  .shop-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chat-log {
+    min-height: 260px;
   }
 }

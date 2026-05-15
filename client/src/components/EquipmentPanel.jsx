@@ -10,16 +10,15 @@ function formatRates(rates) {
   ]
 }
 
-/** `client/public/equipment.jpg` 에 사진을 넣으면 강화 장비로 표시됩니다. */
-const EQUIPMENT_IMAGE = '/equipment.jpg'
+const EQUIPMENT_IMAGE = '/equipment.jpg.jpeg'
 
-export function EquipmentPanel({ level, rates, busy, maxed, onEnhance, lastOutcome }) {
+export function EquipmentPanel({ level, weapon, rates, busy, maxed, onEnhance, lastOutcome }) {
   const [equipImgFailed, setEquipImgFailed] = useState(false)
   const rows = useMemo(() => formatRates(rates), [rates])
 
   const pulseKey = lastOutcome
     ? `${lastOutcome.outcome}-${lastOutcome.oldLevel}-${lastOutcome.newLevel}`
-    : 'idle'
+    : `${weapon?.id ?? 'weapon'}-${level}`
 
   const tierLabel = maxed ? 'MAX' : `+${level}`
 
@@ -33,14 +32,7 @@ export function EquipmentPanel({ level, rates, busy, maxed, onEnhance, lastOutco
           : 'rgba(217, 70, 239, 0.45)'
 
   return (
-    <div
-      className="mmorpg-panel"
-      style={{
-        padding: '22px 18px 20px',
-        position: 'relative',
-        overflow: 'hidden',
-      }}
-    >
+    <div className="mmorpg-panel equipment-panel">
       <div
         aria-hidden
         style={{
@@ -55,7 +47,7 @@ export function EquipmentPanel({ level, rates, busy, maxed, onEnhance, lastOutco
 
       <div style={{ position: 'relative', textAlign: 'center' }}>
         <div className="mmorpg-tag" style={{ marginBottom: 12 }}>
-          전설 장비 · 찰떡파이
+          장비 강화
         </div>
 
         <motion.div
@@ -66,20 +58,7 @@ export function EquipmentPanel({ level, rates, busy, maxed, onEnhance, lastOutco
             rotate: lastOutcome?.outcome === 'fail' ? [0, -2, 2, -1, 1, 0] : [0, 0, 0],
           }}
           transition={{ duration: lastOutcome?.outcome === 'fail' ? 0.55 : 0.45 }}
-          style={{
-            margin: '10px auto 6px',
-            width: 'min(320px, 92%)',
-            aspectRatio: '1 / 1',
-            borderRadius: 18,
-            border: '1px solid rgba(245, 215, 66, 0.35)',
-            background:
-              'linear-gradient(180deg, rgba(60, 20, 90, 0.55), rgba(10, 6, 20, 0.92))',
-            boxShadow:
-              'inset 0 0 40px rgba(0,0,0,0.55), 0 0 0 1px rgba(186,104,255,0.25), var(--shadow-purple)',
-            display: 'grid',
-            placeItems: 'center',
-            position: 'relative',
-          }}
+          className="equipment-frame"
         >
           <AnimatePresence mode="wait">
             <motion.div
@@ -117,48 +96,16 @@ export function EquipmentPanel({ level, rates, busy, maxed, onEnhance, lastOutco
               }}
             />
           ) : (
-            <div style={{ fontSize: 'clamp(4.2rem, 14vw, 6.2rem)', lineHeight: 1 }}>⚔️</div>
+            <div style={{ fontSize: 'clamp(4.2rem, 14vw, 6.2rem)', lineHeight: 1 }}>⚔</div>
           )}
 
-          <div
-            style={{
-              position: 'absolute',
-              bottom: 12,
-              left: 12,
-              right: 12,
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              gap: 10,
-            }}
-          >
-            <span
-              style={{
-                fontSize: '0.82rem',
-                color: 'var(--text-muted)',
-                fontWeight: 700,
-              }}
-            >
-              강화 구간
-            </span>
-            <span style={{ fontSize: '0.82rem', color: 'var(--violet)', fontWeight: 800 }}>
-              +1 ~ +30
-            </span>
+          <div className="equipment-caption">
+            <span>{weapon?.name ?? '수련용 검'}</span>
+            <span>+1 ~ +30</span>
           </div>
         </motion.div>
 
-        <div
-          style={{
-            marginTop: 10,
-            fontSize: 'clamp(2.1rem, 6vw, 3rem)',
-            fontWeight: 900,
-            letterSpacing: '-0.03em',
-            color: maxed ? 'var(--gold)' : 'var(--text)',
-            textShadow: maxed ? 'var(--shadow-gold)' : '0 0 22px rgba(186,104,255,0.35)',
-          }}
-        >
-          {tierLabel}
-        </div>
+        <div className="equipment-level">{tierLabel}</div>
 
         <div style={{ marginTop: 8, minHeight: 26 }}>
           {lastOutcome ? (
@@ -179,64 +126,31 @@ export function EquipmentPanel({ level, rates, busy, maxed, onEnhance, lastOutco
               {lastOutcome.outcome === 'success'
                 ? `강화 성공! +${lastOutcome.oldLevel} → +${lastOutcome.newLevel}`
                 : lastOutcome.outcome === 'fail'
-                  ? `강화 실패… +${lastOutcome.oldLevel} → +${lastOutcome.newLevel}`
+                  ? `강화 실패 +${lastOutcome.oldLevel} → +${lastOutcome.newLevel}`
                   : `장비 파괴! +${lastOutcome.oldLevel} → +${lastOutcome.newLevel}`}
             </motion.div>
           ) : (
             <div style={{ color: 'var(--text-muted)', fontWeight: 600 }}>
-              서버에서 확률이 계산됩니다. 운명을 걸어보세요.
+              서버가 확률을 계산합니다. 운을 걸어보세요.
             </div>
           )}
         </div>
 
-        <div
-          style={{
-            marginTop: 16,
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-            gap: 10,
-          }}
-        >
+        <div className="rate-grid">
           {maxed ? (
-            <div
-              style={{
-                gridColumn: '1 / -1',
-                padding: '12px 10px',
-                borderRadius: 12,
-                border: '1px solid rgba(245,215,66,0.35)',
-                background: 'rgba(8,5,18,0.55)',
-                color: 'var(--gold)',
-                fontWeight: 900,
-              }}
-            >
-              +30 달성! 더 이상 강화 확률은 표시되지 않습니다.
+            <div className="rate-card" style={{ gridColumn: '1 / -1', color: 'var(--gold)' }}>
+              +30 달성! 더 이상 강화할 수 없습니다.
             </div>
           ) : rows ? (
             rows.map((r) => (
-              <div
-                key={r.key}
-                className="mmorpg-panel"
-                style={{
-                  padding: '10px 8px',
-                  borderRadius: 12,
-                  border: `1px solid ${r.color}55`,
-                  background: 'rgba(8, 5, 18, 0.55)',
-                }}
-              >
+              <div key={r.key} className="rate-card" style={{ borderColor: `${r.color}55` }}>
                 <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 700 }}>{r.label}</div>
                 <div style={{ fontSize: '1.15rem', fontWeight: 900, color: r.color }}>{r.value}%</div>
               </div>
             ))
           ) : (
-            <div
-              style={{
-                gridColumn: '1 / -1',
-                color: 'var(--text-muted)',
-                fontWeight: 700,
-                padding: 10,
-              }}
-            >
-              확률 정보를 불러오는 중…
+            <div className="rate-card" style={{ gridColumn: '1 / -1' }}>
+              확률 정보를 불러오는 중
             </div>
           )}
         </div>
@@ -249,7 +163,7 @@ export function EquipmentPanel({ level, rates, busy, maxed, onEnhance, lastOutco
             disabled={busy || maxed}
             style={{ minWidth: 220, padding: '16px 22px', fontSize: '1.08rem' }}
           >
-            {maxed ? '최대 강화 달성' : busy ? '강화 중…' : '강화 시도'}
+            {maxed ? '최대 강화 달성' : busy ? '강화 중...' : '강화 시도'}
           </button>
         </div>
       </div>
