@@ -2,10 +2,12 @@ import { useEffect, useRef, useState } from 'react'
 
 export function ChatPanel({ messages, onSend }) {
   const [draft, setDraft] = useState('')
-  const endRef = useRef(null)
+  const logRef = useRef(null)
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: 'smooth' })
+    const log = logRef.current
+    if (!log) return
+    log.scrollTo({ top: log.scrollHeight, behavior: 'smooth' })
   }, [messages])
 
   function submit(e) {
@@ -23,7 +25,7 @@ export function ChatPanel({ messages, onSend }) {
         <span className="mmorpg-tag">WORLD</span>
       </div>
 
-      <div className="mmorpg-scroll chat-log">
+      <div ref={logRef} className="mmorpg-scroll chat-log">
         {messages.length === 0 ? (
           <div style={{ color: 'var(--text-muted)', fontWeight: 700, fontSize: '0.92rem' }}>
             아직 채팅이 없습니다.
@@ -52,7 +54,6 @@ export function ChatPanel({ messages, onSend }) {
             </div>
           ))
         )}
-        <div ref={endRef} />
       </div>
 
       <form onSubmit={submit} style={{ display: 'flex', gap: 8 }}>
